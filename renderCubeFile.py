@@ -31,12 +31,18 @@ class RenderCubeFile():
 
     def __init__(self, pathToCubeFile, pathToInputFile:str='') -> None:
         inputData = self._getInputData(pathToInputFile)
-        self._createScene(inputData['cameraLocation'], inputData['focalLenght'])
         self.imagePath = inputData['imagePath']
 
-        #with CubeFile(pathToCubeFile) as c:
-        #    mesh = c.createMesh(inputData['isosurfaceValue'], inputData['filterIterations'])
-        #    c.exportCubeFileIsosurfaceToFile(inputData['pathToOBJFile'], mesh)
+        self._createScene(inputData['cameraLocation'], inputData['focalLenght'])
+
+        with CubeFile(pathToCubeFile) as c:
+            mesh = c.createMesh(inputData['isosurfaceValue'], inputData['filterIterations'])
+            c.exportCubeFileIsosurfaceToFile(inputData['pathToOBJFile'], mesh)
+
+            self._drawOBJStructure(inputData['pathToOBJFile'])
+
+            if inputData['deleteOBJFile']:
+                os.remove(inputData['pathToOBJFile'])
 
 
     def _getInputData(self, pathToInputFile) -> dict:
@@ -144,6 +150,57 @@ class RenderCubeFile():
     def renderScene(self, imagePath: str) -> None:
         bpy.context.scene.render.filepath = imagePath
         bpy.ops.render.render(write_still = True)  
+
+
+    def _drawOBJStructure(self, pathToOBJFile: str) -> None:
+        def _createTransperentOBJShader():
+            mat = bpy.data.materials.new('Transperent')
+            
+            mat.use_nodes=True
+
+            nodes = mat.node_tree.nodes
+            nodes.clear()
+            
+            links = mat.node_tree.links
+
+            node_output = nodes.new(type='ShaderNodeOutputMaterial')
+            node_output.location = 700,0
+            
+            node_pbsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
+            node_pbsdf.location = 0,0
+            node_pbsdf.inputs['Base Color'].default_value = (0.0, 0.0, 1.0, 1.0)
+            node_pbsdf.inputs['Alpha'].default_value = 0.8
+            node_pbsdf.inputs['Roughness'].default_value = 1
+            
+            node_transparent = nodes.new(type='ShaderNodeBsdfTransparent')
+            node_transparent.location = 300,-200
+            
+            node_mix = nodes.new(type='ShaderNodeMixShader')
+            node_mix.location = 500,0
+            
+            link = links.new(node_pbsdf.outputs['BSDF'], node_mix.inputs[1])
+            link = links.new(node_transparent.outputs['BSDF'], node_mix.inputs[2])
+            link = links.new(node_mix.outputs['Shader'], node_output.inputs['Surface'])
+
+            mat.blend_method = 'BLEND'
+            mat.shadow_method = 'OPAQUE'
+            mat.use_screen_refraction = False
+
+            bpy.context.scene.eevee.use_ssr = True
+            bpy.context.scene.eevee.use_ssr_refraction = True
+            
+            return mat
+        
+        bpy.ops.wm.obj_import(filepath=pathToOBJFile)
+
+        obj = bpy.context.selected_objects[0] 
+        mat = _createTransperentOBJShader()
+    
+        if obj.data.materials:
+            obj.data.materials[0] = mat
+        else:
+            obj.data.materials.append(mat)      
+    
 
 
 if __name__ == "__main__":
