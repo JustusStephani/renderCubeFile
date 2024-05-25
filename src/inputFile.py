@@ -28,6 +28,9 @@ class InputFile():
         'isosurfaceValue': 0.001,
         'deleteOBJFile': True,
         'pathToOBJFile': '/tmp/tmp.obj',
+        "focalLenght": 25,
+        "cameraLocation": "-y",
+        "imagePath" : "./cubeFileRender.png"
     }
 
     def __init__(self,) -> None:
@@ -94,6 +97,28 @@ class InputFile():
                     raise ValueError
 
             elif key == 'pathToOBJFile':
+                if type(data[key]) != str:
+                    loggerErr.exception(f'Wrong type of value for keyword: {key}. Must be a str.')
+                    raise ValueError
+                self._validatePath(data[key])
+
+            elif key == 'focalLenght':
+                if type(data[key]) != int:
+                    loggerErr.exception(f'Wrong type of value for keyword: {key}. Must be an integer.')
+                    raise ValueError
+                if data[key] < 0:
+                    loggerErr.exception(f'Focal length must be greater than 0.')
+                    raise ValueError
+                
+            elif key == 'cameraLocation':
+                if type(data[key]) != str:
+                    loggerErr.exception(f'Wrong type of value for keyword: {key}. Must be a str.')
+                    raise ValueError
+                elif data[key] not in {'-x', '+x', '-y', '+y', '-z', '+z'}:
+                    loggerErr.exception(f'Camera location must be one of these: "-x", "+x", "-y", "+y", "-z", "+z"')
+                    raise ValueError
+                
+            elif key == 'imagePath':
                 if type(data[key]) != str:
                     loggerErr.exception(f'Wrong type of value for keyword: {key}. Must be a str.')
                     raise ValueError
