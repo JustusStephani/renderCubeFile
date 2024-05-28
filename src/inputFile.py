@@ -21,6 +21,7 @@ loggerDebug = logging.getLogger('debug')
 
 class InputFile():
     '''
+    Class to handle reading and validating input files for rendering cube files.
     '''
     
     defaultValues = {
@@ -35,11 +36,19 @@ class InputFile():
 
     def __init__(self,) -> None:
         '''
+        Initialize the InputFile class.
         '''
         pass
     
     def readInputFile(self, pathToInputFile: str) -> dict:
         '''
+        Read and validate the input file.
+
+        params:
+            pathToInputFile (str): Path to the input file.
+
+        return:
+            data (dict): Data from the input file.
         '''
         try:
             data = self._getDataFromInputFile(pathToInputFile)
@@ -54,6 +63,13 @@ class InputFile():
 
     def _getDataFromInputFile(self, pathToInputFile:str) -> dict:
         '''
+        Retrieve data from the input file.
+
+        params:
+            pathToInputFile (str): Path to the input file.
+
+        return:
+            data (dict): Data from the input file.
         '''
         data = {}
         with open(pathToInputFile, 'r') as f:
@@ -71,6 +87,13 @@ class InputFile():
 
     def _validateData(self, data:dict) -> None:
         '''
+        Validate the input data.
+
+        params:
+            data (dict): Data to be validated.
+
+        return:
+            None
         '''
         dataKeys = data.keys()
 
@@ -126,6 +149,15 @@ class InputFile():
 
             
     def _validatePath(self, path: str):
+        '''
+        Validate if the given path exists.
+
+        params:
+            path (str): Path to be validated.
+
+        return:
+            None
+        '''
         if not os.path.exists(path):
             if not os.path.exists(os.path.dirname(path)):
                 loggerErr.error(f'Path {path} does not exist! Is the path correct?')

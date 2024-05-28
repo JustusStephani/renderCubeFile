@@ -79,6 +79,14 @@ class RenderCubeFile():
     '''
     def __init__(self, pathToCubeFile, pathToInputFile:str='') -> None:
         '''
+        Initialize the RenderCubeFile class with paths to cube and input files.
+        
+        params:
+            pathToCubeFile (str): Path to the cube file.
+            pathToInputFile (str): Path to the input file. Default is an empty string.
+
+        return: 
+            None
         '''
         inputData = self._getInputData(pathToInputFile)
         self.imagePath = inputData['imagePath']
@@ -99,6 +107,13 @@ class RenderCubeFile():
 
     def _getInputData(self, pathToInputFile) -> dict:
         '''
+        Retrieve input data from the specified input file or default values.
+        
+        params:
+            pathToInputFile (str): Path to the input file.
+        
+        return:
+            dict: Input data as a dictionary.
         '''
         inputFile = InputFile()
         if pathToInputFile != '':
@@ -111,6 +126,13 @@ class RenderCubeFile():
      
     def _createScene(self, cameraLocation, focalLenght) -> None:
         '''
+        Create the Blender scene with specified camera location and focal length.
+        
+        params:
+            cameraLocation (str): Camera location in the scene.
+            focalLenght (float): Focal length of the camera.
+        return: 
+            None
         '''
         self._cleanUpDefaultBlenderScene()
 
@@ -121,6 +143,11 @@ class RenderCubeFile():
 
     def _cleanUpDefaultBlenderScene(self) -> None:
         '''
+        Clean up the default Blender scene by removing default objects.
+        params:
+            None
+        return:
+            None
         '''
         objs = bpy.data.objects
         objs.remove(objs["Cube"], do_unlink=True)
@@ -138,12 +165,23 @@ class RenderCubeFile():
 
     def _setBackground(self, ) -> None:
         '''
+        Set the background color of the Blender scene.
+        params:
+            None
+        return:
+            None
         '''
         bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = BACKGROUND_COLOR
                 
 
     def _createLight(self, cameraLocation: str) -> None:
         '''
+        Create a light source in the Blender scene based on camera location.
+        
+        params:
+            cameraLocation (str): Camera location in the scene.
+        return:
+            None
         '''
         lightData = bpy.data.lights.new('sun', 'SUN')
         lightData.energy = 5.0
@@ -177,7 +215,13 @@ class RenderCubeFile():
 
     def _createCamera(self, cameraLocation: str, focalLenght: float) -> None:
         '''
-
+        Create and position a camera in the Blender scene.
+        
+        params:
+            cameraLocation (str): Camera location in the scene.
+            focalLenght (float): Focal length of the camera.
+        return:
+            None
         '''
         bpy.ops.object.camera_add()
         cam = bpy.context.object
@@ -209,19 +253,28 @@ class RenderCubeFile():
             
 
     def renderScene(self, imagePath: str) -> None:
-        '''
-
-        '''
         bpy.context.scene.render.filepath = imagePath
         bpy.ops.render.render(write_still = True)  
 
 
     def _drawOBJStructure(self, pathToOBJFile: str) -> None:
         '''
+        Import and draw the OBJ structure in the Blender scene.
+        
+        params:
+            pathToOBJFile (str): Path to the OBJ file.
+        return:
+            None
         '''
 
-        def _createTransperentOBJShader():
+        def _createTransperentOBJShader() -> bpy.data.materials:
             '''
+            Import and draw the OBJ structure in the Blender scene.
+            
+            params:
+                None
+            return:
+                mat: (bpy.data.materials) The material the electron denisty is rendered from
             '''
 
             mat = bpy.data.materials.new('Transperent')
@@ -274,10 +327,25 @@ class RenderCubeFile():
 
     def _drawAtomsAndBonds(self, atomCoordinates: npt.ArrayLike, atomNames: npt.ArrayLike, unit: str) -> None:
         '''
+        Use the names and coordinates of the nuclei from the cube file to draw the atoms. Calcualte the bonds
+        using the library chemcoord and draw them as sticks.
+        
+        params:
+            atomCoordinates: (npt.ArrayLike) The coordinates of the atoms
+            atomNames: (npt.ArrayLike) The names of the atoms
+        return:
+            None
         '''
 
-        def _draw_atoms(atomCoordinates: npt.ArrayLike, atomNames: npt.ArrayLike) -> None:
+        def _drawAtoms(atomCoordinates: npt.ArrayLike, atomNames: npt.ArrayLike) -> None:
             '''
+            Use the names and coordinates of the nuclei from the cube file to draw the atoms
+            
+            params:
+                atomCoordinates: (npt.ArrayLike) The coordinates of the atoms
+                atomNames: (npt.ArrayLike) The names of the atoms
+            return:
+                None
             '''
             for element, position in zip(atomNames, atomCoordinates):
                 try:
@@ -302,6 +370,14 @@ class RenderCubeFile():
 
         def _calculateBonds(atomCoordinates: npt.ArrayLike, atomNames: npt.ArrayLike, unit: str) -> set:
             '''
+            Calcualte the bonds using the library chemcoord.
+            
+            params:
+                atomCoordinates: (npt.ArrayLike) The coordinates of the atoms
+                atomNames: (npt.ArrayLike) The names of the atoms
+                unit: (str) The unit the cube file is writen in (default is bohr)
+            return:
+                Bonds: (set)
             '''
             if unit == 'Bohr':
                 atomCoordinates = atomCoordinates * CONVERSION_BOHR_TO_ANG
@@ -330,6 +406,13 @@ class RenderCubeFile():
 
         def _drawBonds(bonds: set, atomCoordinates: npt.ArrayLike) -> None:
             '''
+            Draw the bonds as cylinders
+            
+            params:
+                bonds: (set) The bonds between the atoms
+                atomCoordinates: (npt.ArrayLike) The coordinates of the atoms
+            return:
+                None
             '''
             def _distance(a, b):
                 return np.sqrt(np.dot(a - b, a - b))
@@ -375,7 +458,7 @@ class RenderCubeFile():
             bpy.data.materials[key].roughness = 1.0
 
         # for each atom render a sphere
-        _draw_atoms(atomCoordinates, atomNames)
+        _drawAtoms(atomCoordinates, atomNames)
 
         # for each bond render a cylinder
         if len (atomNames) >= 3:
