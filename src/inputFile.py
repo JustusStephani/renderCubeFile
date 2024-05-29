@@ -50,12 +50,8 @@ class InputFile():
         return:
             data (dict): Data from the input file.
         '''
-        try:
-            data = self._getDataFromInputFile(pathToInputFile)
-            self._validateData(data)
-        except IOError as e:
-            loggerErr.exception(f'InputFile: {pathToInputFile} could not be read.')
-            raise e
+        data = self._getDataFromInputFile(pathToInputFile)
+        self._validateData(data)
         loggerOut.info(f'Finished with reading input file {pathToInputFile}')
 
         return data
@@ -72,15 +68,23 @@ class InputFile():
             data (dict): Data from the input file.
         '''
         data = {}
-        with open(pathToInputFile, 'r') as f:
-            inputFileData = json.load(f)
+        try:
+            with open(pathToInputFile, 'r') as f:
+                try:
+                    inputFileData = json.load(f)
+                except ValueError:
+                    loggerErr.exception(f'InputFile: {pathToInputFile} is not valid JSON.')
+                    raise ValueError(f'InputFile: {pathToInputFile} is not valid JSON.')
 
-            inputKeys = inputFileData.keys()
-            for key in self.defaultValues.keys():
-                if key not in inputKeys:
-                    pass
-                else:
-                    data[key] = inputFileData[key]
+                inputKeys = inputFileData.keys()
+                for key in self.defaultValues.keys():
+                    if key not in inputKeys:
+                        pass
+                    else:
+                        data[key] = inputFileData[key]
+        except IOError:
+            loggerErr.exception(f'InputFile: {pathToInputFile} could not be open.')
+            raise IOError(f'InputFile: {pathToInputFile} could not be open.')
 
         return data
 
@@ -161,6 +165,6 @@ class InputFile():
         if not os.path.exists(path):
             if not os.path.exists(os.path.dirname(path)):
                 loggerErr.error(f'Path {path} does not exist! Is the path correct?')
-                raise ValueError
+                raise OSError
         
                 
