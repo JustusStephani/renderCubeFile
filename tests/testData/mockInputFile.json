@@ -3,7 +3,7 @@
   "isosurfaceValue": 0.001,
   "deleteOBJFile": true,
   "pathToOBJFile": "/tmp/tmp.obj",
-  "focalLenght": 80,
+  "focalLenght": 140,
   "cameraLocation": "-z",
   "imagePath" : "./cubeFileRender.png"
 }
