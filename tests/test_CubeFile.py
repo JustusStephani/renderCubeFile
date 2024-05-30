@@ -3,13 +3,11 @@ import pytest
 import pprint
 import sys
 
-pprint.pprint(sys.path)
-
 import os
 
 import numpy as np
 
-from cubeFile import CubeFile
+from src.cubeFile import CubeFile
 
 PATH_TO_MOCK_CUBE_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "testData/mock.cube"
