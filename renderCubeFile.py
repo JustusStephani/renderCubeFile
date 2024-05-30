@@ -6,28 +6,57 @@ Author: Justus Stephani
 
 import os
 import sys
+import subprocess
 
 import logging
 import logging.config
 
 import bpy
-import chemcoord as cc
 
 import numpy as np
 import numpy.typing as npt
 from math import radians, pi
-import mathutils
 
+# Install requirements into the python version blender ships
+# This is needed if the python script is called via the blender executable
+def installModule(module:str) -> None:
+    try:
+        python_exe = os.path.join(sys.prefix, 'bin', 'python3.11')
+        subprocess.call([python_exe, "-m", "ensurepip"])
+        subprocess.call([python_exe, "-m", "pip", "install", "--upgrade", "pip"])
+        subprocess.call([python_exe, "-m", "pip", "install", module])
+    except Exception as e:
+        raise e
+
+try:
+    import chemcoord as cc
+except:
+    installModule('numba==0.57.0')
+    installModule('chemcoord==2.1.2')
+    import chemcoord as cc
+    
+try:
+    import mathutils 
+except:
+    installModule('mathutils')
+    import mathutils
+
+
+# Append the current path to the pythonPath
+# This is needed if the python script is called via the blender executable
+sys.path.append('.')
 from src.cubeFile import CubeFile
 from src.inputFile import InputFile
 from src.argumentParser import ArgumentParserForBlender
 
+# Define system logger
 logging.config.fileConfig(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "logging.conf")
 )
 loggerErr = logging.getLogger("stderr")
 loggerOut = logging.getLogger("stdout")
 loggerDebug = logging.getLogger("debug")
+
 
 BACKGROUND_COLOR = (1, 1, 1, 1)
 
@@ -252,8 +281,11 @@ class RenderCubeFile():
         bpy.context.scene.camera.rotation_euler = ([radians(a) for a in cameraLocationRotationAngles])
             
 
-    def renderScene(self, imagePath: str) -> None:
-        bpy.context.scene.render.filepath = imagePath
+    def renderScene(self, imagePath:str='') -> None:
+        if imagePath == '':
+            bpy.context.scene.render.filepath = self.imagePath
+        else: 
+            bpy.context.scene.render.filepath = imagePath
         bpy.ops.render.render(write_still = True)  
 
 
@@ -467,5 +499,43 @@ class RenderCubeFile():
 
 
 if __name__ == "__main__":
-    pass
+    pathToInputFile = ''
+    pathToCubeFile = None
+
+    # get arguments from parser
+    parser = ArgumentParserForBlender()
+    try:
+        parser.add_argument("--cubeFile", type=str)
+        parser.add_argument("--inputFile", type=str)
+
+        args = parser.parse_args()
+        pathToCubeFile = args.cubeFile
+        pathToInputFile = args.inputFile
+    except IOError as e:
+        loggerErr.exception('Failed to read user input!')
+        sys.exit(1)
+    
+    if pathToInputFile == None:
+        pathToInputFile = ''
+
+    # test if path to cube file exists
+    if pathToCubeFile == None:
+        loggerErr.error('Please provide a cubeFile with the argument --cubeFile.')
+        sys.exit(1)
+    elif not os.path.exists(pathToCubeFile):
+            loggerErr.error('CubeFile does not exist! Is the path correct?')
+            sys.exit(1)
+    
+    # test if path to input file exists if it is not an empty string
+    if pathToInputFile != '':
+        if not os.path.exists(pathToInputFile):
+            loggerErr.error('InputFile does not exist! Is the path correct?')
+            sys.exit(1)
+
+    loggerOut.info(f'Start programm the following input:\n\
+                   pathToCubeFile: {pathToCubeFile} \n\
+                   pathToInputFile: {pathToInputFile}')
+    renderCubeFile = RenderCubeFile(pathToCubeFile, pathToInputFile)
+
+    renderCubeFile.renderScene()
 

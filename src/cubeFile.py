@@ -5,18 +5,42 @@ Author: Justus Stephani
 """
 
 import os
+import sys
+import subprocess
 
 import numpy as np
 import numpy.typing as npt
-
-from skimage import measure
-import open3d
 
 import logging
 import logging.config
 
 from typing import Self, TextIO, Tuple
 
+# Install requirements into the python version blender ships
+# This is needed if the python script is called via the blender executable
+def installModule(module:str) -> None:
+    try:
+        python_exe = os.path.join(sys.prefix, 'bin', 'python3.11')
+        subprocess.call([python_exe, "-m", "ensurepip"])
+        subprocess.call([python_exe, "-m", "pip", "install", "--upgrade", "pip"])
+        subprocess.call([python_exe, "-m", "pip", "install", module])
+    except Exception as e:
+        raise e
+
+try:
+    from skimage import measure 
+except:
+    installModule('scikit-image==0.23.2')
+    from skimage import measure
+
+try:
+    import open3d
+except:
+    installModule('open3d==0.18.0')
+    import open3d
+
+
+# Define system logger
 logging.config.fileConfig(
     os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logging.conf")
 )
