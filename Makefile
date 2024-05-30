@@ -8,12 +8,9 @@ install: requirements.txt
 test:
 	PYTHONPATH=. ./$(VENV)/bin/pytest
 
-run: install
-	./$(VENV)/bin/python3 renderCubeFile.py
-
 clean:
 	./$(VENV)/bin/python3 -m black renderCubeFile.py
 	./$(VENV)/bin/python3 -m black src/cubeFile.py
 	./$(VENV)/bin/python3 -m black src/inputFile.py
 
-.PHONY: install test run
+.PHONY: install test clean
