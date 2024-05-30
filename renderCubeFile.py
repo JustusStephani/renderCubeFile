@@ -178,10 +178,8 @@ class RenderCubeFile():
         return:
             None
         '''
-        objs = bpy.data.objects
-        objs.remove(objs["Cube"], do_unlink=True)
-        objs.remove(objs["Camera"], do_unlink=True)
-        objs.remove(objs["Light"], do_unlink=True)
+        for obj in bpy.data.objects:
+            bpy.data.objects.remove(obj, do_unlink=True)
         
         for material in bpy.data.materials:
             if not material.users:
