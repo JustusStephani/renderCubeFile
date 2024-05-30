@@ -1,0 +1,9 @@
+{
+  "filterIterations": 0,
+  "isosurfaceValue": 0.001,
+  "deleteOBJFile": true,
+  "pathToOBJFile": "/tmp/tmp.obj",
+  "focalLenght": 70,
+  "cameraLocation": "-x",
+  "imagePath" : "README_files/cubeFileRender.png"
+}
